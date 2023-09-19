@@ -17,17 +17,18 @@ static char *netOutputRawaddr = NULL;
 
 int Netoutinit(char *Rawaddr)
 {
-	char *addr;
+	char *addr, *raddr;
 	char *port;
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 
 	netOutputRawaddr = Rawaddr;
+	raddr = strdup(Rawaddr);
 
 	memset(&hints, 0, sizeof hints);
-	if (Rawaddr[0] == '[') {
+	if (raddr[0] == '[') {
 		hints.ai_family = AF_INET6;
-		addr = Rawaddr + 1;
+		addr = raddr + 1;
 		port = strstr(addr, "]");
 		if (port == NULL) {
 			fprintf(stderr, "Invalid IPV6 address\n");
@@ -41,7 +42,7 @@ int Netoutinit(char *Rawaddr)
 			port++;
 	} else {
 		hints.ai_family = AF_UNSPEC;
-		addr = Rawaddr;
+		addr = raddr;
 		port = strstr(addr, ":");
 		if (port == NULL)
 			port = "5555";
@@ -54,7 +55,8 @@ int Netoutinit(char *Rawaddr)
 	hints.ai_socktype = SOCK_DGRAM;
 
 	if ((rv = getaddrinfo(addr, port, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "Invalid/unknown address %s\n", addr);
+		fprintf(stderr, "Can't resolve: address %s port %s\n", addr, port);
+		free(raddr);
 		return -1;
 	}
 
@@ -69,12 +71,14 @@ int Netoutinit(char *Rawaddr)
 		}
 		break;
 	}
+
+	free(raddr);
+	freeaddrinfo(servinfo);
+
 	if (p == NULL) {
 		fprintf(stderr, "failed to connect\n");
 		return -1;
 	}
-
-	freeaddrinfo(servinfo);
 
 	return 0;
 }
