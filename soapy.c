@@ -217,7 +217,7 @@ static void *readThreadEntryPoint(void *arg) {
 		pthread_mutex_unlock(&cbMutex);
 
 		flags = 0;
-		res = SoapySDRDevice_readStream(dev, stream, bufs, soapyInBufSize/2, &flags, &timens, 10000000);
+		res = SoapySDRDevice_readStream(dev, stream, bufs, soapyInBufSize/2, &flags, &timens, 3500000);
 		if(res <= 0) {
 			fprintf(stderr, "WARNING: Failed to read SoapySDR stream (%d): %s\n", res, SoapySDRDevice_lastError());
 			pthread_mutex_lock(&cbMutex);
@@ -270,6 +270,9 @@ int runSoapySample(void)
 	while (!signalExit) {
 		if (--watchdogCounter <= 0) {
 			fprintf(stderr, "No data from SoapySDR for 5 seconds, exiting ...\n");
+			pthread_mutex_lock(&cbMutex);
+			signalExit = 1;
+			pthread_mutex_unlock(&cbMutex);
 			break;
 		}
 		pthread_mutex_unlock(&cbMutex);
