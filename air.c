@@ -194,11 +194,11 @@ int initAirspy(char *optarg)
 			// new_rate is usable if it's a divisible by INTRATE
 			if (use_samplerate_index == -1 || new_rate < AIRINRATE) {
 				// use new_rate if we don't have a rate set yet or if it's lower than the other one
-				// for airspy mini this is just gonna end up being 3 MSPS and for airspy R2 it's gonna be 10 MSPS
-				// because  2.5 MSPS is not dividable by the new INTRATE
+				// for airspy mini this is just gonna end up being 3 MSPS which should be sufficient
+				// airspy R2 has rates 2.5 and 10 MSPS which both aren't divisable so it's not
+				// usable with 12 kHz INTRATE
 				AIRINRATE = new_rate;
 				AIRMULT = new_mult;
-				//fprintf(stderr, "usable rate: %d\n", new_rate);
 				use_samplerate_index = i;
 			}
 		}
@@ -228,7 +228,7 @@ int initAirspy(char *optarg)
 
 	result = airspy_set_rf_bias(device, (uint8_t) R.bias);
 	if (result != AIRSPY_SUCCESS) {
-		fprintf(stderr, "airspy_set_vga_gain() failed: %s (%d)\n", airspy_error_name(result), result);
+		fprintf(stderr, "airspy_set_rf_bias() failed: %s (%d)\n", airspy_error_name(result), result);
     }
 
 	result = airspy_set_linearity_gain(device, (int)R.gain);

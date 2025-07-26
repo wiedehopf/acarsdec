@@ -44,7 +44,6 @@ static unsigned int soapy_ratemult(const SoapySDRDevice *device, const int direc
 	sr_range = SoapySDRDevice_getSampleRateRange(device, direction, channel, &len);
 	qsort(sr_range, len, sizeof(SoapySDRRange), comp_range_pointer);
 	for (i = 0; i < len; i++) {
-		// fprintf(stderr, "sdr range: min: %.0f max: %.0f\n", sr_range[i].minimum, sr_range[i].maximum);
 		// if (max < minsr) continue
 		if (sr_range[i].maximum < (double)minsr)
 			continue;
