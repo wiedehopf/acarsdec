@@ -58,6 +58,18 @@ make
 ```
 
 All optional libraries will be autodected, a summary of what is enabled will be printed by cmake.
+You can however forcefully disable autodetection using any of the following CMake options
+(listed in the same order as the corresponding option dependencies above):
+
+- `-DRTLSDR=OFF`
+- `-DSOAPYSDR=OFF`
+- `-DAIRSPY=OFF`
+- `-DSDRPLAY=OFF`
+- `-DSNDFILE=OFF`
+- `-DALSA=OFF`
+- `-DLIBACARS=OFF`
+- `-DCJSON=OFF`
+- `-DMQTT=OFF`
 
 The `-DCMAKE_C_FLAGS="-march=native"` argument to cmake will produce an `acarsdec` executable
 that is optimized for the machine it was built on (and may not run correctly on other devices).
