@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017 Thierry Leconte
+ *  Copyright (c) 2007,2025 Thierry Leconte
  *
  *   
  *   This code is free software; you can redistribute it and/or modify
@@ -21,24 +21,26 @@
 
 #define CEILING(x,y) (((x) + (y) - 1) / (y))
 
-#define MSKFREQCNTR 1800
-#define MSKFREQMARK 1200
-#define BITLEN CEILING(INTRATE, MSKFREQMARK)
-#define MFLTOVER 12U
+#define MSKFREQMARK 2400
+#define MSKFREQSPACE 1200
+#define MSKFREQCNTR  ((MSKFREQSPACE+MSKFREQMARK)/2)
+
+#define BITLEN CEILING(INTRATE, MSKFREQSPACE)
+#define MFLTOVER 240U
 #define MFLTLEN (BITLEN * MFLTOVER + 1)
 
+#if INTRATE % MSKFREQSPACE
+ #warning INTRATE is not a multiple of MSQFREQSPACE, code may give odd results
+#endif
+
 static float h[MFLTLEN];
-static float havgd[MFLTOVER + 1];	// filter average deviation for each start phase
 
 int initMsk(channel_t *ch)
 {
-	unsigned int i, j;
-	float flvl;
+	unsigned int i;
 
-	ch->MskPhi = ch->MskClk = 0;
-	ch->MskS = 0;
-
-	ch->MskDf = 0;
+	ch->MskClk = ch->MskS = 0;
+	ch->MskDphi = ch->MskDf = 0;
 
 	ch->idx = 0;
 	ch->inb = calloc(BITLEN, sizeof(*ch->inb));
@@ -48,19 +50,9 @@ int initMsk(channel_t *ch)
 	}
 
 	if (ch->chn == 0) {
-		/* precompute half-wave matched filter table, scaled to BITLEN */
-		for (i = 0; i < MFLTLEN; i++) {
-			h[i] = cosf(2.0 * M_PI * 600.0 / INTRATE / MFLTOVER * (signed)(i - (MFLTLEN - 1) / 2)) / BITLEN;
-			if (h[i] < 0)
-				h[i] = 0;
-		}
-
-		/* precompute matched filter average deviation: positive half cosine wave integral should average to 2/π */
-		for (i = 0; i <= MFLTOVER; i++) {
-			for (flvl = 0, j = 0; j < BITLEN; j++)
-				flvl += h[i + j*MFLTOVER];
-			havgd[i] = (2.0 / M_PI) / flvl;
-		}
+		/* precompute half-wave matched filter table */
+		for (i = 0; i < MFLTLEN; i++)
+			h[i] = sin(M_PI * MSKFREQSPACE * (float)i  / INTRATE / MFLTOVER) ;
 	}
 
 	return 0;
@@ -77,8 +69,8 @@ static inline void putbit(float v, channel_t *ch)
 		decodeAcars(ch);
 }
 
-const float PLLG = 38e-4;
-const float PLLC = 0.52;
+static const float PLLKi = 71e-7/BITLEN;
+static const float PLLKp = 60e-3/BITLEN;
 
 void demodMSK(channel_t *ch, int len)
 {
@@ -86,15 +78,62 @@ void demodMSK(channel_t *ch, int len)
 	int n;
 	unsigned int idx = ch->idx;
 	float p = ch->MskPhi;
+	float s;
 
 	for (n = 0; n < len; n++) {
 		float in;
-		float s;
 		float complex v;
 		unsigned int j, o;
 
+		s = 2.0 * M_PI * (float)(MSKFREQCNTR) / INTRATE + ch->MskDphi;
+
+		/* bit clock */
+		ch->MskClk += s;
+		if (ch->MskClk > 3 * M_PI / 2.0) {
+			float dphi;
+			float vo, lvl;
+
+			ch->MskClk -= 3 * M_PI / 2.0;
+
+			/* matched filter */
+			o = MFLTOVER * (ch->MskClk / s );
+			if (o > MFLTOVER)
+				o = MFLTOVER;
+			for (v = 0, j = 0; j < BITLEN; j++, o += MFLTOVER)
+				v += h[o] * ch->inb[(j + idx) % BITLEN];
+
+			/* normalize */
+			lvl = cabsf(v) + 1e-8F;
+			v /= lvl;
+
+			/* update magnitude exp moving average. Average over last 8 bits */
+			ch->MskMag = ch->MskMag - (1.0F/8.0F * (ch->MskMag - lvl));
+
+			if (ch->MskS & 1) {
+				// Q
+				vo = cimagf(v);
+				dphi = (vo >= 0) ? -crealf(v) : crealf(v);
+			} else {
+				// I
+				vo = crealf(v);
+				dphi = (vo >= 0) ? cimagf(v) : -cimagf(v);
+			}
+
+			putbit((ch->MskS & 2) ? -vo : vo, ch);
+			ch->MskS++;
+
+			/* PLL as a PI controller */
+			ch->MskDf += PLLKi * dphi;
+			ch->MskDphi = ch->MskDf + PLLKp * dphi;
+
+			/* limit integrator, just in case - arbitrary cap at 100/INTRATE */
+			if (ch->MskDf > 2.0 * M_PI * 100 / INTRATE)
+				ch->MskDf = 2.0 * M_PI * 100 / INTRATE;
+			else if (ch->MskDf < -2.0 * M_PI * 100 / INTRATE)
+				ch->MskDf = -2.0 * M_PI * 100 / INTRATE;
+		}
+
 		/* VCO */
-		s = (float)MSKFREQCNTR / INTRATE * 2.0 * M_PI + ch->MskDf;
 		p += s;
 		if (p >= 2.0 * M_PI)
 			p -= 2.0 * M_PI;
@@ -103,46 +142,6 @@ void demodMSK(channel_t *ch, int len)
 		in = ch->dm_buffer[n];
 		ch->inb[idx] = in * cexp(-p * I);
 		idx = (idx + 1) % BITLEN;
-
-		/* bit clock */
-		ch->MskClk += s;
-		if (ch->MskClk >= 3 * M_PI / 2.0 - s / 2) {
-			float dphi;
-			float vo, lvl, flvld;
-
-			ch->MskClk -= 3 * M_PI / 2.0;
-
-			/* matched filter */
-			o = MFLTOVER * (ch->MskClk / s + 0.5);
-			if (o > MFLTOVER)
-				o = MFLTOVER;
-			flvld = havgd[o];
-			for (v = 0, j = 0; j < BITLEN; j++, o += MFLTOVER)
-				v += h[o] * ch->inb[(j + idx) % BITLEN];
-
-			/* normalize */
-			lvl = cabsf(v) + 1e-8F;
-			v /= lvl;
-
-			/* adjust lvl to filter average deviation */
-			lvl *= 10.0F * flvld;
-
-			/* update magnitude exp moving average. Average over last 8 bits */
-			ch->MskMag = ch->MskMag - (1.0F/8.0F * (ch->MskMag - lvl));
-
-			if (ch->MskS & 1) {
-				vo = cimagf(v);
-				dphi = (vo >= 0) ? -crealf(v) : crealf(v);
-			} else {
-				vo = crealf(v);
-				dphi = (vo >= 0) ? cimagf(v) : -cimagf(v);
-			}
-			putbit((ch->MskS & 2) ? -vo : vo, ch);
-			ch->MskS++;
-
-			/* PLL filter */
-			ch->MskDf = PLLC * ch->MskDf + (1.0 - PLLC) * PLLG * dphi;
-		}
 	}
 
 	ch->idx = idx;
