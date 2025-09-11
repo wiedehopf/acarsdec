@@ -19,7 +19,7 @@ Since 3.0, it can work with a database backend: [acarsserv](https://github.com/T
 
 GPLv2-only - http://www.gnu.org/licenses/gpl-2.0.html
 
-Copyright: (C) 2015-2022 Thierry Leconte, (C) 2024-2025 Thibaut VARENE
+Copyright: (C) 2007-2022,2025 Thierry Leconte, (C) 2024-2025 Thibaut VARENE
 
 > This program is free software; you can redistribute it and/or
 > modify it under the terms of the GNU General Public License
