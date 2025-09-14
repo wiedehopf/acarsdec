@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <inttypes.h>
 #include <libairspy/airspy.h>
 #include "acarsdec.h"
 #include "lib.h"
@@ -137,10 +138,10 @@ int initAirspy(char *optarg)
 
 	if ((optarg != argF) && (errno == 0)) {
 		if ((airspy_serial < airspy_device_count)) {
-			vprerr("Attempting to open airspy device slot #%llu with serial %016llx.\n", airspy_serial, airspy_device_list[airspy_serial]);
+			vprerr("Attempting to open airspy device slot #%" PRIu64 " with serial %016" PRIx64 ".\n", airspy_serial, airspy_device_list[airspy_serial]);
 			result = airspy_open_sn(&device, airspy_device_list[airspy_serial]);
 		} else {
-			vprerr("Attempting to open airspy serial 0x%016llx\n", airspy_serial);
+			vprerr("Attempting to open airspy serial 0x%016" PRIx64 "\n", airspy_serial);
 			result = airspy_open_sn(&device, airspy_serial);
 		}
 	}
