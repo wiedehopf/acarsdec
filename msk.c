@@ -40,7 +40,7 @@ int initMsk(channel_t *ch)
 	unsigned int i;
 
 	ch->MskClk = ch->MskS = 0;
-	ch->MskDphi = ch->MskDf = 0;
+	ch->MskPhi = ch->MskDphi = ch->MskDf = 0;
 
 	ch->idx = 0;
 	ch->inb = calloc(BITLEN, sizeof(*ch->inb));
