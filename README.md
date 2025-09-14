@@ -211,6 +211,10 @@ See https://tleconte.github.io/R820T/r820IF.html
 All SDR sources described above expect a list of frequencies `<f1> [<f2> [...]]` to decode from, expressed in decimal MHz
 e.g. `131.525 131.725 131.825`.
 
+**NOTE: all the SDR sources set the input gain to "automatic", which generally means "maximum" and is a bad idea for
+good ACARS message reception. It is best to tune the gain to maximize Signal-to-Noise Ratio and reduce the number of
+saturated messages (where the received level is over 0dB).**
+
 #### audio file
 
 All formats supported by libsndfile can be processed.
