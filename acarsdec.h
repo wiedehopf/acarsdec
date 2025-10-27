@@ -104,23 +104,24 @@ typedef struct {
 	msgblk_t *blk;
 	float complex *restrict oscillator;	// scaled oversampled INTRATE oscillator
 	float *restrict dm_buffer;		// INTRATE-sampled signal magnitude buffer
-	float complex *restrict inb;		// oversampled bit buffer
+	float complex *restrict inb;		// oversampled bit circular buffer
 	float MskPhi;				// MSK oscillator phase
 	float MskDphi;				// MSK oscillator phase offset
 	float MskDf;				// MSK oscillator phase offset integral
 	float MskMag;				// signal magnitude moving average
 	float MskPwr;				// signal power moving average (average of magnitude squared)
 	float MskNF;				// noise floor moving average (average of magnitude outside of msg blocks)
-	float MskClk;
-	unsigned int MskS, idx;
+	float MskClk;				// MSK bit clock
+	unsigned int MskS;			// MSK sample index
+	unsigned int idx;			// `inb` buffer index
 
-	unsigned int Fr;		// channel frequency (in Hz)
+	unsigned int Fr;			// channel frequency (in Hz)
 
-	enum { PREKEY, SYNC, SOH1, TXT, CRC1, CRC2, END } Acarsstate;
-	uint8_t chn;
-	int8_t count;
-	uint8_t nbits;
-	uint8_t outbits;
+	enum { PREKEY, SYNC, SOH1, TXT, CRC1, CRC2, END } Acarsstate;	// current state of the ACARS decoder state machine
+	uint8_t chn;				// channel number
+	int8_t count;				// counter for number of heard PREKEY sync bytes
+	uint8_t outbits;			// MSK-decoded bits buffer
+	uint8_t nbits;				// bits remaining to populate in `outbits`
 } channel_t;
 
 typedef struct output_s {
