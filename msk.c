@@ -122,15 +122,14 @@ void demodMSK(channel_t *ch, int len)
 			putbit((ch->MskS & 2) ? -vo : vo, ch);
 			ch->MskS++;
 
-			/* PLL as a PI controller */
-			ch->MskDf += PLLKi * dphi;
-			ch->MskDphi = ch->MskDf + PLLKp * dphi;
-
-			/* limit integrator, just in case - arbitrary cap at 100/INTRATE */
-			if (ch->MskDf > 2.0 * M_PI * 100 / INTRATE)
-				ch->MskDf = 2.0 * M_PI * 100 / INTRATE;
-			else if (ch->MskDf < -2.0 * M_PI * 100 / INTRATE)
-				ch->MskDf = -2.0 * M_PI * 100 / INTRATE;
+			// lock on signal once ACARS header has been / is being heard
+			if (PREKEY != ch->Acarsstate || ch->count) {
+				/* PLL as a PI controller */
+				ch->MskDf += PLLKi * dphi;
+				ch->MskDphi = ch->MskDf + PLLKp * dphi;
+			}
+			else	// otherwise don't even try to lock. XXX REVISIT: use a 2nd order / 1st order PLL split?
+				ch->MskDf = ch->MskDphi = 0
 		}
 
 		/* VCO */
