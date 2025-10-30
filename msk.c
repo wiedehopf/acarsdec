@@ -129,7 +129,7 @@ void demodMSK(channel_t *ch, int len)
 				ch->MskDphi = ch->MskDf + PLLKp * dphi;
 			}
 			else	// otherwise don't even try to lock. XXX REVISIT: use a 2nd order / 1st order PLL split?
-				ch->MskDf = ch->MskDphi = 0
+				ch->MskDf = ch->MskDphi = 0;
 		}
 
 		/* VCO */
