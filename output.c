@@ -368,7 +368,7 @@ static int fmt_time(struct timeval tv, char *buf, size_t bufsz)
 	gmtime_r(&(tv.tv_sec), &tmp);
 
 	return snprintf(buf, bufsz, "%02d:%02d:%02d.%03ld",
-			tmp.tm_hour, tmp.tm_min, tmp.tm_sec, tv.tv_usec / 1000);
+			tmp.tm_hour, tmp.tm_min, tmp.tm_sec, tv.tv_usec / 1000L);
 }
 
 static int fmt_date(struct timeval tv, char *buf, size_t bufsz)
