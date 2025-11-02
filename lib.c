@@ -83,7 +83,7 @@ int channels_init_sdr(unsigned int Fc, unsigned int multiplier, float scale)
 		/* precompute a scaled, oversampled local INTRATE oscillator per channel
 		 mixing this oscillator with the received full-scale oversampled signal
 		 will provide a normalized signal at the channel frequency */
-		correctionPhase = (signed)(ch->Fr - Fc) / (float)(INTRATE * multiplier) * 2.0 * M_PI;
+		correctionPhase = (signed)(ch->Fr - Fc) / (float)(INTRATE * multiplier) * (float)(2 * M_PI);
 		vprerr("#%d: Fc = %uHz, Fr = %uHz, phase = % f (%+dHz)\n",
 		       n+1, Fc, ch->Fr, correctionPhase, (signed)(ch->Fr - Fc));
 		for (ind = 0; ind < multiplier; ind++)

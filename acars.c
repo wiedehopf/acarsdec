@@ -353,8 +353,8 @@ synced:
 			}
 			gettimeofday(&(ch->blk->tv), NULL);
 			ch->Acarsstate = TXT;
-			ch->blk->lvl = 10 * log10(ch->MskPwr);
-			ch->blk->nf = 20 * log10(ch->MskNF);
+			ch->blk->lvl = 10 * log10f(ch->MskPwr);
+			ch->blk->nf = 20 * log10f(ch->MskNF);
 			ch->blk->chn = ch->chn;
 			ch->blk->txtlen = 0;
 			ch->blk->err = 0;

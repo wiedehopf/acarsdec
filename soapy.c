@@ -108,7 +108,7 @@ int initSoapy(char *optarg)
 	if (!Fc)
 		return 1;
 
-	if (R.gain <= -10.0) {
+	if (R.gain <= -10.0F) {
 		vprerr("Tuner gain: AGC\n");
 		r = SoapySDRDevice_setGainMode(dev, SOAPY_SDR_RX, 0, 1);
 		if (r != 0)

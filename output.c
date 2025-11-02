@@ -558,7 +558,7 @@ static flight_t *addFlight(acarsmsg_t *msg, int chn, struct timeval tv)
 static int fmt_json(acarsmsg_t *msg, int chn, struct timeval tv, char *buf, size_t bufsz)
 {
 	oooi_t oooi = {0};
-	float freq = R.channels[chn].Fr / 1000000.0;
+	float freq = R.channels[chn].Fr / 1000000.0F;
 	cJSON *json_obj;
 	int ok = 0;
 	char convert_tmp[8];

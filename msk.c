@@ -52,7 +52,7 @@ int initMsk(channel_t *ch)
 	if (ch->chn == 0) {
 		/* precompute half-wave matched filter table */
 		for (i = 0; i < MFLTLEN; i++)
-			h[i] = sin(M_PI * MSKFREQSPACE * (float)i  / INTRATE / MFLTOVER) ;
+			h[i] = sinf(M_PI * MSKFREQSPACE * i / INTRATE / MFLTOVER) ;
 	}
 
 	return 0;
@@ -85,15 +85,15 @@ void demodMSK(channel_t *ch, int len)
 		float complex v;
 		unsigned int j, o;
 
-		s = 2.0 * M_PI * (float)(MSKFREQCNTR) / INTRATE + ch->MskDphi;
+		s = (float)(2 * M_PI) * (MSKFREQCNTR) / INTRATE + ch->MskDphi;
 
 		/* bit clock */
 		ch->MskClk += s;
-		if (ch->MskClk > 3 * M_PI / 2.0) {
+		if (ch->MskClk > (float)(3 * M_PI_2)) {
 			float dphi;
 			float vo, lvl;
 
-			ch->MskClk -= 3 * M_PI / 2.0;
+			ch->MskClk -= (float)(3 * M_PI_2);
 
 			/* matched filter */
 			o = MFLTOVER * (ch->MskClk / s );
@@ -134,12 +134,12 @@ void demodMSK(channel_t *ch, int len)
 
 		/* VCO */
 		p += s;
-		if (p >= 2.0 * M_PI)
-			p -= 2.0 * M_PI;
+		if (p >= (float)(2 * M_PI))
+			p -= (float)(2 * M_PI);
 
 		/* mixer */
 		in = ch->dm_buffer[n];
-		ch->inb[idx] = in * cexp(-p * I);
+		ch->inb[idx] = in * cexpf(-p * I);
 		idx = (idx + 1) % BITLEN;
 	}
 
