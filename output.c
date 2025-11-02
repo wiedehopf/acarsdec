@@ -333,10 +333,10 @@ static int fmt_sv(acarsmsg_t *msg, int chn, struct timeval tv, char *buf, size_t
 	gmtime_r(&(tv.tv_sec), &tmp);
 
 	return snprintf(buf, bufsz,
-		       "%8s %1d %02d/%02d/%04d %02d:%02d:%02d %1d %03d %1c %7s %1c %2s %1c %4s %6s %s",
-		       R.idstation, chn + 1, tmp.tm_mday, tmp.tm_mon + 1,
-		       tmp.tm_year + 1900, tmp.tm_hour, tmp.tm_min, tmp.tm_sec,
-		       msg->err, (int)(msg->lvl), msg->mode, msg->addr, msg->ack, msg->label,
+			"%8s %1d %02d/%02d/%04d %02d:%02d:%02d %1d %03d %1c %7s %1c %2s %1c %4s %6s %s",
+			R.idstation, chn + 1, tmp.tm_mday, tmp.tm_mon + 1,
+			tmp.tm_year + 1900, tmp.tm_hour, tmp.tm_min, tmp.tm_sec,
+			msg->err, (int)(msg->lvl), msg->mode, msg->addr, msg->ack, msg->label,
 			msg->bid ? msg->bid : '.', msg->no, msg->fid, msg->txt ? msg->txt : "");
 }
 
@@ -417,14 +417,12 @@ static int fmt_msg(acarsmsg_t *msg, int chn, struct timeval tv, char *buf, size_
 		}
 		if (msg->sublabel[0] != '\0') {
 			len += snprintf(buf + len, bufsz - len, "\nSublabel: %s", msg->sublabel);
-			if (msg->mfi[0] != '\0') {
+			if (msg->mfi[0] != '\0')
 				len += snprintf(buf + len, bufsz - len, " MFI: %s", msg->mfi);
-			}
 		}
 #ifdef HAVE_LIBACARS
-		if (!R.skip_reassembly) {
+		if (!R.skip_reassembly)
 			len += snprintf(buf + len, bufsz - len, "\nReassembly: %s", la_reasm_status_name_get(msg->reasm_status));
-		}
 #endif
 	}
 
@@ -699,18 +697,9 @@ static int fmt_monitor(acarsmsg_t *msg, int chn, struct timeval tv, char *buf, s
 			len += snprintf(buf + len, bufsz - len, "%c", (fl->chm & (1 << i)) ? 'x' : '.');
 		len += snprintf(buf + len, bufsz - len, " ");
 		len += fmt_time(fl->ts, buf + len, bufsz - len);
-		if (fl->oooi.sa[0])
-			len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.sa);
-		else
-			len += snprintf(buf + len, bufsz - len, "      ");
-		if (fl->oooi.da[0])
-			len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.da);
-		else
-			len += snprintf(buf + len, bufsz - len, "      ");
-		if (fl->oooi.eta[0])
-			len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.eta);
-		else
-			len += snprintf(buf + len, bufsz - len, "      ");
+		len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.sa[0] ? fl->oooi.sa : "    ");
+		len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.da[0] ? fl->oooi.da : "    ");
+		len += snprintf(buf + len, bufsz - len, " %4s ", fl->oooi.eta[0] ? fl->oooi.eta: "    ");
 		len += snprintf(buf + len, bufsz - len, "\n");
 
 		fl = fl->next;
