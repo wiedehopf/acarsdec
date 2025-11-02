@@ -721,7 +721,9 @@ static int fmt_monitor(acarsmsg_t *msg, int chn, struct timeval tv, char *buf, s
 
 void outputmsg(const msgblk_t *blk)
 {
+#ifdef HAVE_LIBACARS
 	uint8_t *reassembled_msg = NULL;
+#endif
 	acarsmsg_t msg;
 	int i, outflg = 0;
 	flight_t *fl = NULL;
