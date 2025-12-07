@@ -283,9 +283,11 @@ int main(int argc, char **argv)
 		{ "soapysdr", required_argument, NULL, IN_SOAPY },
 #endif
 		{ "verbose", no_argument, NULL, 'v' },
-		{ "skip-reassembly", no_argument, NULL, -1 },
-		{ "output", required_argument, NULL, -2 },
+		{ "output", required_argument, NULL, -2 },	// -1 is EOF
 		{ "statsd", required_argument, NULL, -3 },
+#ifdef HAVE_LIBACARS
+		{ "skip-reassembly", no_argument, NULL, -4 },
+#endif
 		{ NULL, 0, NULL, 0 }
 	};
 	char sys_hostname[HOST_NAME_MAX + 1];
@@ -299,11 +301,6 @@ int main(int argc, char **argv)
 	res = 0;
 	while ((c = getopt_long(argc, argv, "hvt:g:m:a:Aep:c:i:L:G:b:B:", long_opts, NULL)) != EOF) {
 		switch (c) {
-#ifdef HAVE_LIBACARS
-		case -1:
-			R.skip_reassembly = 1;
-			break;
-#endif
 		case -2:
 			res = setup_output(optarg);
 			if (res)
@@ -312,6 +309,11 @@ int main(int argc, char **argv)
 		case -3:
 			statsdarg = optarg;
 			break;
+#ifdef HAVE_LIBACARS
+		case -4:
+			R.skip_reassembly = 1;
+			break;
+#endif
 		case 'v':
 			R.verbose = 1;
 			break;
