@@ -9,7 +9,9 @@ include(CMakeDependentOption)
 
 add_executable(acarsdec acars.c  acarsdec.c  label.c  msk.c  output.c netout.c fileout.c lib.c statsd.c)
 execute_process(COMMAND git describe --tags --always --dirty OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(VERSION)
 add_compile_definitions(VERSION="${VERSION}")
+endif()
 
 find_package(PkgConfig)
 if(NOT PKG_CONFIG_FOUND)
